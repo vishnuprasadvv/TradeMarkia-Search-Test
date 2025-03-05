@@ -297,11 +297,11 @@ const SearchPage: React.FC = () => {
 
         <div>
           {/* Main content */}
-          <div className="flex  gap-15 w-full">
-            {/* Small Screen */}
+          <div className="flex gap-5 md:gap-15 w-full">
 
-            <div className="md:hidden flex  gap-15 w-full ">
-              <div className="space-y-4">
+            {/* Small Screen */}
+            <div className="md:hidden flex w-3/4 sm:w-full">
+              <div className="space-y-4 w-full">
                 {results.map((trademark) => (
                   <div
                     key={trademark.id}
