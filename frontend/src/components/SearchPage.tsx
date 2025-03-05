@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { fetchTradeMarks, FilterOptions } from '../api/api';
 import SearchBar from './SearchBar';
-import Filters from './Filters';
 import logo from '../assets/trademarkia-logo.png'
 import { MdOutlineFilterAlt } from "react-icons/md";
 import { MdOutlineShare } from "react-icons/md";
@@ -9,6 +8,8 @@ import { MdOutlineSort } from "react-icons/md";
 import { FiSearch } from 'react-icons/fi';
 import { FaRotate } from "react-icons/fa6";
 import bottleicon from '../assets/bottle-icon1.svg'
+import image from '../assets/Image Unavailable.svg'
+import toast from 'react-hot-toast';
 
 interface Trademark {
     id: string
@@ -24,21 +25,6 @@ interface Trademark {
   status: string;
 }
 
-interface Owner {
-    id: string
-    name: string
-  }
-
-
-
- // Mock data for owners
- const owners: Owner[] = [
-    { id: "1", name: "Tesla, Inc." },
-    { id: "2", name: "LEGALFORCE RAPC" },
-    { id: "3", name: "Squareit Inc." },
-    { id: "4", name: "Spaceit Inc." },
-  ]
-
 const SearchPage:React.FC = () => {
 
     const [loading, setLoading] = useState(false);
@@ -46,16 +32,110 @@ const SearchPage:React.FC = () => {
     const [filters, setFilters] = useState<FilterOptions>({});
     const [results, setResults] = useState<Trademark[]>([]);
     const [selectedStatus, setSelectedStatus] = useState('')
+    const [searchValue, setSearchValue ] = useState('')
+    const [owners, setOwners] = useState<{name: string, count: number}[]>([])
+    const [attorneys, setAttorneys] = useState<{name: string, count: number}[]>([])
+    const [lawFirms, setLawFirms] = useState<{name: string, count: number}[]>([])
+    const [selectedOwners, setSelectedOwners] = useState<string[]>([])
+    const [selectedAttorneys, setSelectedAttorneys] = useState<string[]>([])
+    const [selectedLawFirms, setSelectedLawFirms] = useState<string[]>([])
+    const [selectedFilter, setSelectedFilter] = useState('owners')
+    const [searchQuery, setSearchQuery] = useState("");
+
+    // Determine the correct list to display based on the active filter
+  const filteredList =
+  selectedFilter === "owners"
+    ? owners
+    : selectedFilter === "attorneys"
+    ? attorneys
+    : lawFirms;
+
+     // Determine the state for selected items
+  const selectedItems =
+  selectedFilter === "owners"
+    ? selectedOwners
+    : selectedFilter === "attorneys"
+    ? selectedAttorneys
+    : selectedLawFirms;
 
 
-    const handleSearch = async (query: string) => {
+    const handleSelection = (name: string) => {
+        if (selectedItems.includes(name)) {
+          if (selectedFilter === "owners") {
+            setSelectedOwners(selectedOwners.filter((o) => o !== name));
+          } else if (selectedFilter === "attorneys") {
+            setSelectedAttorneys(selectedAttorneys.filter((o) => o !== name));
+          } else {
+            setSelectedLawFirms(selectedLawFirms.filter((o) => o !== name));
+          }
+        } else {
+          if (selectedFilter === "owners") {
+            setSelectedOwners([...selectedOwners, name]);
+          } else if (selectedFilter === "attorneys") {
+            setSelectedAttorneys([...selectedAttorneys, name]);
+          } else {
+            setSelectedLawFirms([...selectedLawFirms, name]);
+          }
+        }
+      };
+
+    useEffect( () => {
+       handleSearch()
+       console.log('seraching')
+    },[filters])
+
+    useEffect(() => {
+        setFilters((prev) => ({
+            ...prev,
+            status: [selectedStatus] ,
+            owners:  selectedOwners || [] ,
+            attorneys: selectedAttorneys || [],
+            lawFirms:  selectedLawFirms || [],
+        }));
+    }, [selectedStatus, selectedOwners, selectedAttorneys, selectedLawFirms])
+
+    const handleSearch = async (query: string = 'nike') => {
         setLoading(true);
         setError("")
+        setSearchValue(query);
 
         try {
-            const response = await fetchTradeMarks(query, filters)
-             
-            const resultData = await response.body.hits.hits.map(hit => {
+
+            const searchToast = toast.promise(
+
+                fetchTradeMarks(query, filters),
+                {
+                    loading: 'Searching...',
+                    success: 'Search completed successfully!',
+                    error: 'Failed to fetch results. Please try again.'
+                }
+            )
+            const response = await searchToast;
+
+            if (!response || !response.body) {
+                throw new Error("Invalid response format");
+            }
+
+            type HitType = {
+                _id: string;
+                _source: {
+                    registration_number?: string;
+                    registration_date?: number;
+                    filing_date?: number;
+                    status_date?: number;
+                    renewal_date?: number;
+                    mark_identification?: string;
+                    current_owner?: string;
+                    mark_description_description?: string[];
+                    class_codes?: string[];
+                    status_type?: string;
+                };
+            };
+
+            type BucketType = { key: string; doc_count: number };
+
+             const hits : HitType[] = response.body?.hits?.hits || [];
+            const resultData: Trademark[] = hits.map((hit) => {
                 const source = hit._source;
 
                 return {
@@ -67,38 +147,41 @@ const SearchPage:React.FC = () => {
                     renewalDate: source.renewal_date ? new Date(source.renewal_date * 1000).toLocaleDateString() : "N/A",
                     markIdentification : source.mark_identification || 'N/A',
                     currentOwner : source.current_owner || 'N/A',
-                    description: source.mark_description_description,
-                    classes : source.class_codes || 'N/A',
+                    description: source.mark_description_description || [],
+                    classes : source.class_codes || [],
                     status: source.status_type || 'N/A'
                 }
             })
 
-            // const owners = response.body.aggregations.current_owners.buckets.map(bucket => ({
-            //     name: bucket.key,
-            //     count: bucket.doc_count,
-            // }))
+            const ownersData: {name: string, count: number}[] = response.body.aggregations.current_owners.buckets.map((bucket: BucketType) => ({
+                name: bucket.key,
+                count: bucket.doc_count,
+            }))
 
-            // const attorneysData = response.body.aggregations.attorneys.buckets.map(bucket => ({
-            //     name : bucket.key,
-            //     count: bucket.doc_count
-            // }))
-            // const lawfirmsData = response.body.aggregations.law_firms.buckets.map(bucket => ({
-            //     name : bucket.key,
-            //     count: bucket.doc_count
-            // }))
+            const attorneysData: {name: string, count: number}[] = response.body.aggregations.attorneys.buckets.map((bucket: BucketType)  => ({
+                name : bucket.key,
+                count: bucket.doc_count
+            }))
+            const lawfirmsData: {name: string, count: number}[] = response.body.aggregations.law_firms.buckets.map((bucket: BucketType)  => ({
+                name : bucket.key,
+                count: bucket.doc_count
+            }))
+
+            
 
             console.log(response.body)
              console.log(resultData)
              setResults(resultData)
+             setOwners(ownersData)
+             setAttorneys(attorneysData)
+             setLawFirms(lawfirmsData)
+
         } catch (error) {
-            setError('Failed to fetch results. Please try again.');
+            console.error('Failed to fetch results. Please try again.');
         }finally{
             setLoading(false);
+            if(results.length ===0 ) toast.error('No results found!')
         }
-    }
-
-    const handleFilterChange = (newFilters: FilterOptions) => {
-        setFilters(newFilters)
     }
 
   return (
@@ -114,22 +197,20 @@ const SearchPage:React.FC = () => {
         </header>
         
 
-        {loading && <p>Searching...</p>}
-      {error && <p className="text-red-500">{error}</p>}
-      {/* {!loading && results.length === 0 && <p>No results found.</p>} */}
-
       <div className='xl:mx-[45px] mx-4'>
-     <div className='border-b-[#E7E6E6] text-[#4B5563]'>
-        <h4>About 159 Trademarks found for "nike"</h4>
+      {searchValue.length > 0 &&
+     <div className='border-b border-b-[#E7E6E6] text-[#4B5563] py-4 font-bold'>
+         <h4>About {results.length} Trademarks found for "{searchValue}"</h4>
      </div>
+        }
 
     {/* Search suggestion */}
-     <div className='flex text-[#4B5563] justify-between items-center'>
+     <div className='flex text-[#4B5563] justify-between items-center py-8 font-bold'>
         {/* Search suggestion left */}
         <div className='flex gap-5 items-center '>
         <h4>Also try searching for</h4>
-        <div className='bg-[#FEF7F0] w-[58px] h-[35px] flex items-center justify-center rounded-lg border-2 border-[#E7760E] text-[#E7760E]'>nike*</div>
-        <div className='bg-[#FEF7F0] w-[58px] h-[35px] flex items-center justify-center rounded-lg border-2 border-[#E7760E] text-[#E7760E]'>*ike</div>
+        <div className='bg-[#FEF7F0] w-[58px] h-[35px] flex items-center justify-center rounded-lg border-2 border-[#E7760E] text-[#E7760E] text-xs'>nike*</div>
+        <div className='bg-[#FEF7F0] w-[58px] h-[35px] flex items-center justify-center rounded-lg border-2 border-[#E7760E] text-[#E7760E] text-xs'>*ike</div>
         
         </div>
 
@@ -150,7 +231,7 @@ const SearchPage:React.FC = () => {
         {/* Trademark list */}
         <div className="flex-1">
           {/* Table header */}
-          <div className="grid grid-cols-4 gap-4 border-b pb-2 mb-4 text-[#313131] font-bold">
+          <div className="grid grid-cols-4 gap-4 border-b border-b-[#E7E6E6] pb-2 mb-4 text-[#313131] font-bold">
             <div>Mark</div>
             <div>Details</div>
             <div>Status</div>
@@ -162,9 +243,9 @@ const SearchPage:React.FC = () => {
             {results.map((trademark) => (
               <div key={trademark.id} className="grid grid-cols-4 gap-4 pb-4">
                 <div className="flex items-center">
-                  <div className="w-16 h-16 bg-gray-100 border flex items-center justify-center relative">
+                  <div className="w-[160px] h-[120px] bg-white drop-shadow-xl rounded-lg flex items-center justify-center relative">
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-gray-300 text-3xl">⊕</span>
+                     <img src={image} alt="image" />
                     </div>
                   </div>
                 </div>
@@ -250,45 +331,71 @@ const SearchPage:React.FC = () => {
         {/* Owners filter */}
         <div className='flex flex-col max-w-[296px] h-[265px] bg-white rounded-lg shadow-md shadow-neutral-200 p-5'>
         
-        <div className="flex gap-4 mb-2 text-sm md:text-[16px] items-start">
-
-          <button className='font-bold border-b-3 pb-2'>Owners</button>
-          <button >Law Firms</button>
-          <button >Attorneys</button>
+         <div className="flex gap-4 mb-2 text-sm md:text-[16px] items-start">
+        <button
+          className={`font-bold border-b-3 pb-2 ${
+            selectedFilter === "owners" ? "border-black" : "border-transparent"
+          }`}
+          onClick={() => setSelectedFilter("owners")}
+        >
+          Owners
+        </button>
+        <button
+          className={`font-bold border-b-3 pb-2 ${
+            selectedFilter === "lawFirms" ? "border-black" : "border-transparent"
+          }`}
+          onClick={() => setSelectedFilter("lawFirms")}
+        >
+          Law Firms
+        </button>
+        <button
+          className={`font-bold border-b-3 pb-2 ${
+            selectedFilter === "attorneys" ? "border-black" : "border-transparent"
+          }`}
+          onClick={() => setSelectedFilter("attorneys")}
+        >
+          Attorneys
+        </button>
+      </div>
+      {/* Search Input */}
+      <div className="search mb-3">
+        <div className="flex items-center relative">
+          <FiSearch className="absolute mx-3 size-5 text-[#636363]" />
+          <input
+            type="text"
+            placeholder={`Search ${selectedFilter.charAt(0).toUpperCase() + selectedFilter.slice(1)}`}
+            className="w-[160px] md:w-[256px] h-[40px] border-1 border-[#D4D4D4] rounded-xl bg-white pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-            <div className='search mb-3'>
-                 <div className="flex items-center relative">
-                      <FiSearch className="absolute mx-3 size-5 text-[#636363]"/>
-                      <input
-                        type="text"
-                        placeholder="Search Owners"
-                        className=" w-[160px] md:w-[256px] h-[40px] border-1 border-[#D4D4D4] rounded-xl bg-white pl-10"
-                      />
-                      </div>
-            </div>
+      </div>
 
-            <div className="space-y-2 max-h-40 overflow-y-auto">
-              {owners.map((owner) => (
-                <div key={owner.id} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={`owner-${owner.id}`}
-                    className="h-4 w-4 text-blue-600 rounded"
-                    // checked={selectedOwners.includes(owner.name)}
-                    // onChange={() => {
-                    //   if (selectedOwners.includes(owner.name)) {
-                    //     setSelectedOwners(selectedOwners.filter((o) => o !== owner.name))
-                    //   } else {
-                    //     setSelectedOwners([...selectedOwners, owner.name])
-                    //   }
-                    // }}
-                  />
-                  <label htmlFor={`owner-${owner.id}`} className="ml-2 text-sm">
-                    {owner.name}
-                  </label>
-                </div>
-              ))}
+            {/* Filtered List */}
+      <div className="space-y-2 max-h-40 overflow-y-auto">
+        {filteredList
+          .filter((item) =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .map((item, index) => (
+            <div key={index} className="flex items-center">
+              <input
+                type="checkbox"
+                id={`${selectedFilter}-${item.name}`}
+                className="h-4 w-4 text-blue-600 rounded"
+                checked={selectedItems.includes(item.name)}
+                onChange={() => handleSelection(item.name)}
+              />
+              <label
+                htmlFor={`${selectedFilter}-${item.name}`}
+                className="ml-2 text-sm"
+              >
+                {item.name}
+              </label>
             </div>
+          ))}
+      </div>
+    </div>
           </div>
 
         </div>
@@ -298,7 +405,6 @@ const SearchPage:React.FC = () => {
 
 
         
-      </div>
       </div>
       </div>
     
