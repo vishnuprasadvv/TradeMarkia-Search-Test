@@ -298,9 +298,110 @@ const SearchPage: React.FC = () => {
         <div>
           {/* Main content */}
           <div className="flex  gap-15 w-full">
+            {/* Small Screen */}
+
+            <div className="md:hidden flex  gap-15 w-full ">
+              <div className="space-y-4">
+                {results.map((trademark) => (
+                  <div
+                    key={trademark.id}
+                    className="flex flex-col gap-4 pb-4 rounded-xl border border-gray-200 p-3"
+                  >
+                    <div className="flex items-center justify-evenly">
+                      <div className="w-[160px] h-[120px] bg-white drop-shadow-xl rounded-lg flex items-center justify-center relative">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <img src={image} alt="image" />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center">
+                            <span
+                              className={`w-2 h-2  rounded-full mr-2 ${
+                                trademark.status == "registered"
+                                  ? "bg-green-500"
+                                  : trademark.status == "pending"
+                                  ? "bg-[#ECC53C]"
+                                  : trademark.status == "abandoned"
+                                  ? "bg-[#EC3C3C]"
+                                  : "bg-[#4380EC]"
+                              } `}
+                            ></span>
+                            <span
+                              className={`font-bold ${
+                                trademark.status == "registered"
+                                  ? "text-green-500"
+                                  : trademark.status == "pending"
+                                  ? "text-[#ECC53C]"
+                                  : trademark.status == "abandoned"
+                                  ? "text-[#EC3C3C]"
+                                  : "text-[#4380EC]"
+                              }`}
+                            >
+                              {trademark.status}
+                            </span>
+                          </div>
+                          <div className="text-xs mt-1 flex">
+                            <span className="mr-1">on</span>
+                            <p className="font-bold">{trademark.statusDate}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-xs font-bold mt-1">
+                          <span className="mr-1">
+                            <FaRotate className="text-[#EC4A4A]" />
+                          </span>
+                          {trademark.renewalDate}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="font-bold">
+                        {trademark.markIdentification}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {trademark.currentOwner}
+                      </div>
+                      <div className="text-sm font-semibold  mt-2">
+                        {trademark.registrationNumber}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {trademark.registrationDate}
+                      </div>
+                    </div>
+
+                    <div className="overflow-hidden">
+                      <div className="text-sm line-clamp-2">
+                        {trademark.description}
+                      </div>
+                      <div className="mt-4 overflow-x-auto">
+                        <div className="flex items-center font-bold overflow-x-hidden whitespace-nowrap">
+                          {trademark.classes.map((cls, index) => (
+                            <div
+                              key={`${cls}-${index}`}
+                              className="flex items-center text-xs mr-4 flex-shrink-0 line-clamp-1"
+                            >
+                              <img
+                                src={bottleicon || ""}
+                                alt="icon"
+                                className="w-4 h-4 mr-1"
+                              />
+                              <span className="mr-1">Class</span>
+                              <span>{cls}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Trademark list */}
             {results.length > 0 ? (
-              <div className="flex-1">
+              <div className="flex-1 hidden md:block">
                 {/* Table header */}
                 <div className="grid grid-cols-4 gap-4 border-b border-b-[#E7E6E6] pb-2 mb-4 text-[#313131] font-bold">
                   <div>Mark</div>
