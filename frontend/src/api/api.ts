@@ -33,8 +33,10 @@ export const fetchTradeMarks = async (query: string, filters: FilterOptions) => 
             },
             {
                 headers: {
-                    Accept: 'application/json',
+                    Accept: 'application/json, text/plain, */*',
                     'Content-Type': 'application/json',
+                    "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
+                   
                 },
             }
         )

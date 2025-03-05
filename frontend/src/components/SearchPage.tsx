@@ -12,15 +12,16 @@ import bottleicon from '../assets/bottle-icon1.svg'
 
 interface Trademark {
     id: string
-  name: string
-  company: string
-  registrationNumber: string
-  registrationDate: string
-  status: "Live / Registered"
-  statusDate: string
-  filingDate: string
+  registrationNumber: string;
+  registrationDate: string;
+  filingDate: string;
+  statusDate: string;
+  renewalDate: string;
+  markIdentification: string;
+  currentOwner: string;
+  description: string[]
   classes: string[]
-  description: string
+  status: string;
 }
 
 interface Owner {
@@ -28,20 +29,7 @@ interface Owner {
     name: string
   }
 
-const trademarks: Trademark[] = Array(10)
-.fill(null)
-.map((_, index) => ({
-  id: `${index + 1}`,
-  name: "Meta Logo",
-  company: "FACEBOOK INC.",
-  registrationNumber: "88713620",
-  registrationDate: "26 Jan 2020",
-  status: "Live / Registered",
-  statusDate: "26 Jun 2020",
-  filingDate: "26 Dec 2017",
-  classes: ["45", "8", "9"],
-  description: "Computer services, Social Media, Networking, Virtual Communities, Community",
-}))
+
 
  // Mock data for owners
  const owners: Owner[] = [
@@ -59,18 +47,49 @@ const SearchPage:React.FC = () => {
     const [results, setResults] = useState<Trademark[]>([]);
     const [selectedStatus, setSelectedStatus] = useState('')
 
-    useEffect(() => {
-        setResults(trademarks)
-        
-    })
 
     const handleSearch = async (query: string) => {
         setLoading(true);
         setError("")
 
         try {
-            const data = await fetchTradeMarks(query, filters)
-             setResults(data.results || []);
+            const response = await fetchTradeMarks(query, filters)
+             
+            const resultData = await response.body.hits.hits.map(hit => {
+                const source = hit._source;
+
+                return {
+                    id: hit._id,
+                    registrationNumber : source.registration_number || 'NA',
+                    registrationDate : source.registration_date ? new Date(source.registration_date * 1000).toLocaleDateString() : 'NA',
+                    filingDate: source.filing_date ? new Date(source.filing_date * 1000).toLocaleDateString() : "N/A",
+                    statusDate: source.status_date ? new Date(source.status_date * 1000).toLocaleDateString() : "N/A",
+                    renewalDate: source.renewal_date ? new Date(source.renewal_date * 1000).toLocaleDateString() : "N/A",
+                    markIdentification : source.mark_identification || 'N/A',
+                    currentOwner : source.current_owner || 'N/A',
+                    description: source.mark_description_description,
+                    classes : source.class_codes || 'N/A',
+                    status: source.status_type || 'N/A'
+                }
+            })
+
+            // const owners = response.body.aggregations.current_owners.buckets.map(bucket => ({
+            //     name: bucket.key,
+            //     count: bucket.doc_count,
+            // }))
+
+            // const attorneysData = response.body.aggregations.attorneys.buckets.map(bucket => ({
+            //     name : bucket.key,
+            //     count: bucket.doc_count
+            // }))
+            // const lawfirmsData = response.body.aggregations.law_firms.buckets.map(bucket => ({
+            //     name : bucket.key,
+            //     count: bucket.doc_count
+            // }))
+
+            console.log(response.body)
+             console.log(resultData)
+             setResults(resultData)
         } catch (error) {
             setError('Failed to fetch results. Please try again.');
         }finally{
@@ -94,9 +113,6 @@ const SearchPage:React.FC = () => {
             </div>
         </header>
         
-            
-
-     
 
         {loading && <p>Searching...</p>}
       {error && <p className="text-red-500">{error}</p>}
@@ -127,7 +143,6 @@ const SearchPage:React.FC = () => {
      </div>
 
       <div>
-      <Filters onApplyFilters={handleFilterChange} />
 
 
 {/* Main content */}
@@ -145,7 +160,7 @@ const SearchPage:React.FC = () => {
           {/* Table content */}
           <div className="space-y-4">
             {results.map((trademark) => (
-              <div key={trademark.id} className="grid grid-cols-4 gap-4 border-b pb-4">
+              <div key={trademark.id} className="grid grid-cols-4 gap-4 pb-4">
                 <div className="flex items-center">
                   <div className="w-16 h-16 bg-gray-100 border flex items-center justify-center relative">
                     <div className="absolute inset-0 flex items-center justify-center">
@@ -154,8 +169,8 @@ const SearchPage:React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-bold">{trademark.name}</div>
-                  <div className="text-sm text-gray-600">{trademark.company}</div>
+                  <div className="font-bold">{trademark.markIdentification}</div>
+                  <div className="text-sm text-gray-600">{trademark.currentOwner}</div>
                   <div className="text-sm font-semibold  mt-2">{trademark.registrationNumber}</div>
                   <div className="text-xs text-gray-600">{trademark.registrationDate}</div>
                 </div>
@@ -172,15 +187,15 @@ const SearchPage:React.FC = () => {
                   </div>
                   <div className="flex items-center text-xs font-bold mt-1">
                     <span className="mr-1"><FaRotate className='text-[#EC4A4A]' /></span>
-                    {trademark.filingDate}
+                    {trademark.renewalDate}
                   </div>
                 </div>
-                <div>
-                  <div className="text-sm">{trademark.description}</div>
-                  <div className="flex mt-2 space-x-2 font-bold">
+                <div className='overflow-hidden'>
+                  <div className="text-sm line-clamp-2">{trademark.description}</div>
+                  <div className="flex flex-wrap mt-2 space-x-2 font-bold">
                     {trademark.classes.map((cls) => (
-                      <div key={cls} className="flex items-center text-xs  px-2 py-1 rounded">
-                        <img src={bottleicon} alt="icon" />
+                      <div key={cls} className="flex items-center text-xs">
+                        <img src={bottleicon} alt="icon" className="aspect-square mr-1" />
                         <span className="mr-1">Class</span>
                         <span>{cls}</span>
                       </div>
