@@ -157,6 +157,14 @@ const SearchPage: React.FC = () => {
 
         type BucketType = { key: string; doc_count: number };
 
+        const formatDate = (timestamp: number | null) => {
+          if (!timestamp) return "N/A";
+          const date = new Date(timestamp * 1000);
+          return `${date.getDate()} ${date.toLocaleString("en-US", {
+            month: "short",
+          })} ${date.getFullYear()}`;
+        };
+
         const hits: HitType[] = response.body?.hits?.hits || [];
         const resultData: Trademark[] = hits.map((hit) => {
           const source = hit._source;
@@ -165,16 +173,16 @@ const SearchPage: React.FC = () => {
             id: hit._id,
             registrationNumber: source.registration_number || "NA",
             registrationDate: source.registration_date
-              ? new Date(source.registration_date * 1000).toLocaleDateString()
+              ? formatDate(source.registration_date)
               : "NA",
             filingDate: source.filing_date
-              ? new Date(source.filing_date * 1000).toLocaleDateString()
+              ? formatDate(source.filing_date)
               : "N/A",
             statusDate: source.status_date
-              ? new Date(source.status_date * 1000).toLocaleDateString()
+              ? formatDate(source.status_date)
               : "N/A",
             renewalDate: source.renewal_date
-              ? new Date(source.renewal_date * 1000).toLocaleDateString()
+              ? formatDate(source.renewal_date)
               : "N/A",
             markIdentification: source.mark_identification || "N/A",
             currentOwner: source.current_owner || "N/A",
@@ -215,7 +223,7 @@ const SearchPage: React.FC = () => {
         if (resultData.length === 0) toast.error("No results found!");
       } catch (error) {
         console.error("Failed to fetch results. Please try again.");
-        setResults([])
+        setResults([]);
       } finally {
       }
     },
@@ -287,123 +295,122 @@ const SearchPage: React.FC = () => {
           </div>
         </div>
 
-
-<div>
+        <div>
           {/* Main content */}
           <div className="flex  gap-15 w-full">
             {/* Trademark list */}
-            {
-    results.length > 0 ? (
+            {results.length > 0 ? (
+              <div className="flex-1">
+                {/* Table header */}
+                <div className="grid grid-cols-4 gap-4 border-b border-b-[#E7E6E6] pb-2 mb-4 text-[#313131] font-bold">
+                  <div>Mark</div>
+                  <div>Details</div>
+                  <div>Status</div>
+                  <div>Class/Description</div>
+                </div>
 
-            <div className="flex-1">
-              {/* Table header */}
-              <div className="grid grid-cols-4 gap-4 border-b border-b-[#E7E6E6] pb-2 mb-4 text-[#313131] font-bold">
-                <div>Mark</div>
-                <div>Details</div>
-                <div>Status</div>
-                <div>Class/Description</div>
-              </div>
-
-              {/* Table content */}
-              <div className="space-y-4">
-                {results.map((trademark) => (
-                  <div
-                    key={trademark.id}
-                    className="grid grid-cols-4 gap-4 pb-4"
-                  >
-                    <div className="flex items-center">
-                      <div className="w-[160px] h-[120px] bg-white drop-shadow-xl rounded-lg flex items-center justify-center relative">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <img src={image} alt="image" />
+                {/* Table content */}
+                <div className="space-y-4">
+                  {results.map((trademark) => (
+                    <div
+                      key={trademark.id}
+                      className="grid grid-cols-4 gap-4 pb-4"
+                    >
+                      <div className="flex items-center">
+                        <div className="w-[160px] h-[120px] bg-white drop-shadow-xl rounded-lg flex items-center justify-center relative">
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <img src={image} alt="image" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div>
-                      <div className="font-bold">
-                        {trademark.markIdentification}
-                      </div>
-                      <div className="text-sm text-gray-600">
-                        {trademark.currentOwner}
-                      </div>
-                      <div className="text-sm font-semibold  mt-2">
-                        {trademark.registrationNumber}
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        {trademark.registrationDate}
-                      </div>
-                    </div>
-                    <div className="flex flex-col justify-between">
                       <div>
-                        <div className="flex items-center">
-                          <span
-                            className={`w-2 h-2  rounded-full mr-2 ${
-                              trademark.status == "registered"
-                                ? "bg-green-500"
-                                : trademark.status == "pending"
-                                ? "bg-[#ECC53C]"
-                                : trademark.status == "abandoned"
-                                ? "bg-[#EC3C3C]"
-                                : "bg-[#4380EC]"
-                            } `}
-                          ></span>
-                          <span
-                            className={`font-bold ${
-                              trademark.status == "registered"
-                                ? "text-green-500"
-                                : trademark.status == "pending"
-                                ? "text-[#ECC53C]"
-                                : trademark.status == "abandoned"
-                                ? "text-[#EC3C3C]"
-                                : "text-[#4380EC]"
-                            }`}
-                          >
-                            {trademark.status}
-                          </span>
+                        <div className="font-bold">
+                          {trademark.markIdentification}
                         </div>
-                        <div className="text-xs mt-1 flex">
-                          <span className="mr-1">on</span>
-                          <p className="font-bold">{trademark.statusDate}</p>
+                        <div className="text-sm text-gray-600">
+                          {trademark.currentOwner}
+                        </div>
+                        <div className="text-sm font-semibold  mt-2">
+                          {trademark.registrationNumber}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {trademark.registrationDate}
                         </div>
                       </div>
-                      <div className="flex items-center text-xs font-bold mt-1">
-                        <span className="mr-1">
-                          <FaRotate className="text-[#EC4A4A]" />
-                        </span>
-                        {trademark.renewalDate}
-                      </div>
-                    </div>
-                    <div className="overflow-hidden">
-                      <div className="text-sm line-clamp-2">
-                        {trademark.description}
-                      </div>
-                      <div className="mt-4 overflow-x-auto">
-                        <div className="flex items-center font-bold overflow-x-hidden whitespace-nowrap">
-                          {trademark.classes.map((cls, index) => (
-                            <div
-                              key={`${cls}-${index}`}
-                              className="flex items-center text-xs mr-4 flex-shrink-0 line-clamp-1"
+                      <div className="flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center">
+                            <span
+                              className={`w-2 h-2  rounded-full mr-2 ${
+                                trademark.status == "registered"
+                                  ? "bg-green-500"
+                                  : trademark.status == "pending"
+                                  ? "bg-[#ECC53C]"
+                                  : trademark.status == "abandoned"
+                                  ? "bg-[#EC3C3C]"
+                                  : "bg-[#4380EC]"
+                              } `}
+                            ></span>
+                            <span
+                              className={`font-bold ${
+                                trademark.status == "registered"
+                                  ? "text-green-500"
+                                  : trademark.status == "pending"
+                                  ? "text-[#ECC53C]"
+                                  : trademark.status == "abandoned"
+                                  ? "text-[#EC3C3C]"
+                                  : "text-[#4380EC]"
+                              }`}
                             >
-                              <img
-                                src={bottleicon || ""}
-                                alt="icon"
-                                className="w-4 h-4 mr-1"
-                              />
-                              <span className="mr-1">Class</span>
-                              <span>{cls}</span>
-                            </div>
-                          ))}
+                              {trademark.status}
+                            </span>
+                          </div>
+                          <div className="text-xs mt-1 flex">
+                            <span className="mr-1">on</span>
+                            <p className="font-bold">{trademark.statusDate}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center text-xs font-bold mt-1">
+                          <span className="mr-1">
+                            <FaRotate className="text-[#EC4A4A]" />
+                          </span>
+                          {trademark.renewalDate}
+                        </div>
+                      </div>
+                      <div className="overflow-hidden">
+                        <div className="text-sm line-clamp-2">
+                          {trademark.description}
+                        </div>
+                        <div className="mt-4 overflow-x-auto">
+                          <div className="flex items-center font-bold overflow-x-hidden whitespace-nowrap">
+                            {trademark.classes.map((cls, index) => (
+                              <div
+                                key={`${cls}-${index}`}
+                                className="flex items-center text-xs mr-4 flex-shrink-0 line-clamp-1"
+                              >
+                                <img
+                                  src={bottleicon || ""}
+                                  alt="icon"
+                                  className="w-4 h-4 mr-1"
+                                />
+                                <span className="mr-1">Class</span>
+                                <span>{cls}</span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
-    ): (
-        <div className="text-center w-full">
-            <h1 className="text-2xl text-gray-500 uppercase font-bold">No Results Found</h1>
-        </div>
-    )}
+            ) : (
+              <div className="text-center w-full">
+                <h1 className="text-2xl text-gray-500 uppercase font-bold">
+                  No Results Found
+                </h1>
+              </div>
+            )}
 
             {/* Filter area */}
             <div className="space-y-2 flex flex-col w-[200px] md:w-[300px]">
@@ -576,8 +583,6 @@ const SearchPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        
       </div>
     </div>
   );
