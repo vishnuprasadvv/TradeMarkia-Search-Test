@@ -6,6 +6,9 @@ import logo from '../assets/trademarkia-logo.png'
 import { MdOutlineFilterAlt } from "react-icons/md";
 import { MdOutlineShare } from "react-icons/md";
 import { MdOutlineSort } from "react-icons/md";
+import { FiSearch } from 'react-icons/fi';
+import { FaRotate } from "react-icons/fa6";
+import bottleicon from '../assets/bottle-icon1.svg'
 
 interface Trademark {
     id: string
@@ -128,11 +131,11 @@ const SearchPage:React.FC = () => {
 
 
 {/* Main content */}
-<div className="flex flex-col lg:flex-row gap-6">
+<div className="flex  gap-15">
         {/* Trademark list */}
         <div className="flex-1">
           {/* Table header */}
-          <div className="grid grid-cols-4 gap-4 border-b pb-2 mb-4 font-medium text-gray-700">
+          <div className="grid grid-cols-4 gap-4 border-b pb-2 mb-4 text-[#313131] font-bold">
             <div>Mark</div>
             <div>Details</div>
             <div>Status</div>
@@ -151,30 +154,33 @@ const SearchPage:React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <div className="font-medium">{trademark.name}</div>
+                  <div className="font-bold">{trademark.name}</div>
                   <div className="text-sm text-gray-600">{trademark.company}</div>
-                  <div className="text-sm text-gray-600 mt-2">{trademark.registrationNumber}</div>
-                  <div className="text-sm text-gray-600">{trademark.registrationDate}</div>
+                  <div className="text-sm font-semibold  mt-2">{trademark.registrationNumber}</div>
+                  <div className="text-xs text-gray-600">{trademark.registrationDate}</div>
                 </div>
-                <div>
+                <div className='flex flex-col justify-between'> 
+                    <div>
                   <div className="flex items-center">
                     <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                    <span className="text-green-500">{trademark.status}</span>
+                    <span className="text-green-500 font-bold">{trademark.status}</span>
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    <span className="mr-1">→</span>
-                    {trademark.statusDate}
+                  <div className="text-xs mt-1 flex">
+                    <span className="mr-1">on</span>
+                    <p className='font-bold'>{trademark.statusDate}</p>
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    <span className="mr-1">→</span>
+                  </div>
+                  <div className="flex items-center text-xs font-bold mt-1">
+                    <span className="mr-1"><FaRotate className='text-[#EC4A4A]' /></span>
                     {trademark.filingDate}
                   </div>
                 </div>
                 <div>
                   <div className="text-sm">{trademark.description}</div>
-                  <div className="flex mt-2 space-x-2">
+                  <div className="flex mt-2 space-x-2 font-bold">
                     {trademark.classes.map((cls) => (
-                      <div key={cls} className="flex items-center text-xs bg-gray-100 px-2 py-1 rounded">
+                      <div key={cls} className="flex items-center text-xs  px-2 py-1 rounded">
+                        <img src={bottleicon} alt="icon" />
                         <span className="mr-1">Class</span>
                         <span>{cls}</span>
                       </div>
@@ -187,9 +193,9 @@ const SearchPage:React.FC = () => {
         </div>
 
             {/* Filter area */}
-        <div>
+        <div className='space-y-2 flex flex-col w-[200px] md:w-[300px]'>
             {/* Status filter */}
-            <div className='flex flex-col max-w-[296px] h-[160px] bg-white rounded-lg shadow-md shadow-neutral-200 p-5'>
+            <div className='flex flex-col  max-w-[296px] h-[230px] md:h-[160px] bg-white rounded-lg shadow-md shadow-neutral-200 p-5'>
                 <h3 className='font-bold mb-2'>Status</h3>
                 <div className='flex flex-wrap h-[37px] gap-1.5'>
                     <button className={ `px-3 py-1.5 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${selectedStatus == 'all' ? "bg-[#EEF4FF] text-[#4380EC] border-[#4380EC]" : "border-[#C8C8C8] hover:bg-gray-50 "}`} 
@@ -223,7 +229,56 @@ const SearchPage:React.FC = () => {
                     </button>
                 </div>
             </div>
+
+
+
+        {/* Owners filter */}
+        <div className='flex flex-col max-w-[296px] h-[265px] bg-white rounded-lg shadow-md shadow-neutral-200 p-5'>
+        
+        <div className="flex gap-4 mb-2 text-sm md:text-[16px] items-start">
+
+          <button className='font-bold border-b-3 pb-2'>Owners</button>
+          <button >Law Firms</button>
+          <button >Attorneys</button>
         </div>
+            <div className='search mb-3'>
+                 <div className="flex items-center relative">
+                      <FiSearch className="absolute mx-3 size-5 text-[#636363]"/>
+                      <input
+                        type="text"
+                        placeholder="Search Owners"
+                        className=" w-[160px] md:w-[256px] h-[40px] border-1 border-[#D4D4D4] rounded-xl bg-white pl-10"
+                      />
+                      </div>
+            </div>
+
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {owners.map((owner) => (
+                <div key={owner.id} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`owner-${owner.id}`}
+                    className="h-4 w-4 text-blue-600 rounded"
+                    // checked={selectedOwners.includes(owner.name)}
+                    // onChange={() => {
+                    //   if (selectedOwners.includes(owner.name)) {
+                    //     setSelectedOwners(selectedOwners.filter((o) => o !== owner.name))
+                    //   } else {
+                    //     setSelectedOwners([...selectedOwners, owner.name])
+                    //   }
+                    // }}
+                  />
+                  <label htmlFor={`owner-${owner.id}`} className="ml-2 text-sm">
+                    {owner.name}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
+
         </div>
 
 
