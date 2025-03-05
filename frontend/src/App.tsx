@@ -1,16 +1,17 @@
-
-import { Toaster } from 'react-hot-toast'
-import './App.css'
-import SearchPage from './components/SearchPage'
+import { Toaster } from "react-hot-toast";
+import "./App.css";
+import SearchPage from "./components/SearchPage";
+import { BrowserRouter } from "react-router-dom";
 
 function App() {
-
   return (
     <>
-    <Toaster />
-      <SearchPage />
+      <BrowserRouter>
+        <Toaster />
+        <SearchPage />
+      </BrowserRouter>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

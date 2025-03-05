@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { fetchTradeMarks, FilterOptions } from '../api/api';
 import SearchBar from './SearchBar';
 import logo from '../assets/trademarkia-logo.png'
@@ -10,6 +10,7 @@ import { FaRotate } from "react-icons/fa6";
 import bottleicon from '../assets/bottle-icon1.svg'
 import image from '../assets/Image Unavailable.svg'
 import toast from 'react-hot-toast';
+import { useSearchParams } from 'react-router-dom';
 
 interface Trademark {
     id: string
@@ -27,9 +28,7 @@ interface Trademark {
 
 const SearchPage:React.FC = () => {
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [filters, setFilters] = useState<FilterOptions>({});
+    // const [filters, setFilters] = useState<FilterOptions>({});
     const [results, setResults] = useState<Trademark[]>([]);
     const [selectedStatus, setSelectedStatus] = useState('')
     const [searchValue, setSearchValue ] = useState('')
@@ -41,6 +40,8 @@ const SearchPage:React.FC = () => {
     const [selectedLawFirms, setSelectedLawFirms] = useState<string[]>([])
     const [selectedFilter, setSelectedFilter] = useState('owners')
     const [searchQuery, setSearchQuery] = useState("");
+
+    const [searchParams, setSearchParams] = useSearchParams();
 
     // Determine the correct list to display based on the active filter
   const filteredList =
@@ -79,110 +80,140 @@ const SearchPage:React.FC = () => {
         }
       };
 
-    useEffect( () => {
-       handleSearch()
-       console.log('seraching')
-    },[filters])
+      const filters = useMemo(() => ({
+        status: [selectedStatus],
+        owners: selectedOwners || [],
+        attorneys: selectedAttorneys || [],
+        lawFirms: selectedLawFirms || [],
+     }), [selectedStatus, selectedOwners, selectedAttorneys, selectedLawFirms]);
+
+
+
+      useEffect(() => {
+        const params: Record<string, string> = {};
+
+        if(selectedStatus) params.status = selectedStatus;
+        if(selectedOwners.length) params.owners = selectedOwners.join(',');
+        if(searchValue) params.query = searchValue;
+
+        setSearchParams(params);
+      }, [selectedStatus, selectedOwners, searchValue])
+
+
+      useEffect(() => {
+        const statusFromURL = searchParams.get("status") || "";
+        const ownersFromURL = searchParams.get("owners")?.split(",") || [];
+        const queryFromURL = searchParams.get("query") || "nike";
+    
+        setSelectedStatus((prev) => (prev !== statusFromURL ? statusFromURL : prev));
+        setSelectedOwners((prev) => (JSON.stringify(prev) !== JSON.stringify(ownersFromURL) ? ownersFromURL : prev));
+        setSearchValue((prev) => (prev !== queryFromURL ? queryFromURL : prev));
+    }, []);
 
     useEffect(() => {
-        setFilters((prev) => ({
-            ...prev,
-            status: [selectedStatus] ,
-            owners:  selectedOwners || [] ,
-            attorneys: selectedAttorneys || [],
-            lawFirms:  selectedLawFirms || [],
-        }));
-    }, [selectedStatus, selectedOwners, selectedAttorneys, selectedLawFirms])
+        handleSearch(searchValue);
+    }, [filters]);
 
-    const handleSearch = async (query: string = 'nike') => {
-        setLoading(true);
-        setError("")
-        setSearchValue(query);
 
-        try {
-
-            const searchToast = toast.promise(
-
-                fetchTradeMarks(query, filters),
-                {
-                    loading: 'Searching...',
-                    success: 'Search completed successfully!',
-                    error: 'Failed to fetch results. Please try again.'
+    const handleSearch = useCallback(
+        async (query: string) => {
+            if(query.length == 0 ) query = 'nike'
+            setSearchValue(query);
+    
+            try {
+    
+                const searchToast = toast.promise(
+    
+                    fetchTradeMarks(query, filters),
+                    {
+                        loading: 'Searching...',
+                        success: 'Search completed successfully!',
+                        error: 'Failed to fetch results. Please try again.'
+                    }
+                )
+                const response = await searchToast;
+    
+                if (!response || !response.body) {
+                    throw new Error("Invalid response format");
                 }
-            )
-            const response = await searchToast;
-
-            if (!response || !response.body) {
-                throw new Error("Invalid response format");
-            }
-
-            type HitType = {
-                _id: string;
-                _source: {
-                    registration_number?: string;
-                    registration_date?: number;
-                    filing_date?: number;
-                    status_date?: number;
-                    renewal_date?: number;
-                    mark_identification?: string;
-                    current_owner?: string;
-                    mark_description_description?: string[];
-                    class_codes?: string[];
-                    status_type?: string;
+    
+                type HitType = {
+                    _id: string;
+                    _source: {
+                        registration_number?: string;
+                        registration_date?: number;
+                        filing_date?: number;
+                        status_date?: number;
+                        renewal_date?: number;
+                        mark_identification?: string;
+                        current_owner?: string;
+                        mark_description_description?: string[];
+                        class_codes?: string[];
+                        status_type?: string;
+                    };
                 };
-            };
+    
+                type BucketType = { key: string; doc_count: number };
+    
+                 const hits : HitType[] = response.body?.hits?.hits || [];
+                const resultData: Trademark[] = hits.map((hit) => {
+                    const source = hit._source;
+    
+                    return {
+                        id: hit._id,
+                        registrationNumber : source.registration_number || 'NA',
+                        registrationDate : source.registration_date ? new Date(source.registration_date * 1000).toLocaleDateString() : 'NA',
+                        filingDate: source.filing_date ? new Date(source.filing_date * 1000).toLocaleDateString() : "N/A",
+                        statusDate: source.status_date ? new Date(source.status_date * 1000).toLocaleDateString() : "N/A",
+                        renewalDate: source.renewal_date ? new Date(source.renewal_date * 1000).toLocaleDateString() : "N/A",
+                        markIdentification : source.mark_identification || 'N/A',
+                        currentOwner : source.current_owner || 'N/A',
+                        description: source.mark_description_description || [],
+                        classes : source.class_codes || [],
+                        status: source.status_type || 'N/A'
+                    }
+                })
+    
+                const ownersData: {name: string, count: number}[] = response.body.aggregations.current_owners.buckets.map((bucket: BucketType) => ({
+                    name: bucket.key,
+                    count: bucket.doc_count,
+                }))
+    
+                const attorneysData: {name: string, count: number}[] = response.body.aggregations.attorneys.buckets.map((bucket: BucketType)  => ({
+                    name : bucket.key,
+                    count: bucket.doc_count
+                }))
+                const lawfirmsData: {name: string, count: number}[] = response.body.aggregations.law_firms.buckets.map((bucket: BucketType)  => ({
+                    name : bucket.key,
+                    count: bucket.doc_count
+                }))
+    
+                
+    
+                console.log(response.body)
+                 console.log(resultData)
+                 setResults(resultData)
+                 setOwners(ownersData)
+                 setAttorneys(attorneysData)
+                 setLawFirms(lawfirmsData)
 
-            type BucketType = { key: string; doc_count: number };
-
-             const hits : HitType[] = response.body?.hits?.hits || [];
-            const resultData: Trademark[] = hits.map((hit) => {
-                const source = hit._source;
-
-                return {
-                    id: hit._id,
-                    registrationNumber : source.registration_number || 'NA',
-                    registrationDate : source.registration_date ? new Date(source.registration_date * 1000).toLocaleDateString() : 'NA',
-                    filingDate: source.filing_date ? new Date(source.filing_date * 1000).toLocaleDateString() : "N/A",
-                    statusDate: source.status_date ? new Date(source.status_date * 1000).toLocaleDateString() : "N/A",
-                    renewalDate: source.renewal_date ? new Date(source.renewal_date * 1000).toLocaleDateString() : "N/A",
-                    markIdentification : source.mark_identification || 'N/A',
-                    currentOwner : source.current_owner || 'N/A',
-                    description: source.mark_description_description || [],
-                    classes : source.class_codes || [],
-                    status: source.status_type || 'N/A'
-                }
-            })
-
-            const ownersData: {name: string, count: number}[] = response.body.aggregations.current_owners.buckets.map((bucket: BucketType) => ({
-                name: bucket.key,
-                count: bucket.doc_count,
-            }))
-
-            const attorneysData: {name: string, count: number}[] = response.body.aggregations.attorneys.buckets.map((bucket: BucketType)  => ({
-                name : bucket.key,
-                count: bucket.doc_count
-            }))
-            const lawfirmsData: {name: string, count: number}[] = response.body.aggregations.law_firms.buckets.map((bucket: BucketType)  => ({
-                name : bucket.key,
-                count: bucket.doc_count
-            }))
-
-            
-
-            console.log(response.body)
-             console.log(resultData)
-             setResults(resultData)
-             setOwners(ownersData)
-             setAttorneys(attorneysData)
-             setLawFirms(lawfirmsData)
-
-        } catch (error) {
-            console.error('Failed to fetch results. Please try again.');
-        }finally{
-            setLoading(false);
-            if(results.length ===0 ) toast.error('No results found!')
+                 if(resultData.length === 0 ) toast.error('No results found!')
+    
+            } catch (error) {
+                console.error('Failed to fetch results. Please try again.');
+            }finally{
+             
+            }
         }
-    }
+        , [filters]
+    ) 
+
+    //copy URL 
+    const copyLink = () => {
+        const searchURL = window.location.href;
+        navigator.clipboard.writeText(searchURL);
+        toast.success("Search link copied!");
+    };
 
   return (
     <div className='font-gilroy-medium bg-[#FEFEFE] '>
@@ -216,9 +247,9 @@ const SearchPage:React.FC = () => {
 
         {/* Search suggestion right */}
         <div className='flex items-center gap-5'>
-        <div className= ' text-[#575757] rounded-lg border-[#C8C8C8] border flex items-center justify-center h-[42px] w-[95px]'> <MdOutlineFilterAlt />Filter</div>
-        <div className= ' text-[#575757] rounded-full border border-[#C8C8C8] flex items-center justify-center h-[32px] w-[32px]'> <MdOutlineShare /></div>
-        <div className= ' text-[#575757] rounded-full border border-[#C8C8C8] flex items-center justify-center h-[32px] w-[32px]'> <MdOutlineSort /></div>
+        <div className= ' text-[#575757] rounded-lg border-[#C8C8C8] border flex items-center justify-center h-[42px] w-[95px] cursor-pointer'> <MdOutlineFilterAlt />Filter</div>
+        <div className= ' text-[#575757] rounded-full border border-[#C8C8C8] flex items-center justify-center h-[32px] w-[32px] cursor-pointer' onClick={copyLink}> <MdOutlineShare /></div>
+        <div className= ' text-[#575757] rounded-full border border-[#C8C8C8] flex items-center justify-center h-[32px] w-[32px] cursor-pointer'> <MdOutlineSort /></div>
         </div>
         
      </div>
