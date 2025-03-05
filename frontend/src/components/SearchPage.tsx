@@ -376,7 +376,7 @@ const SearchPage: React.FC = () => {
                       <div className="text-sm line-clamp-2">
                         {trademark.description}
                       </div>
-                      <div className="mt-2 overflow-x-auto">
+                      <div className="mt-4 overflow-x-auto">
                         <div className="flex items-center font-bold overflow-x-hidden whitespace-nowrap">
                           {trademark.classes.map((cls, index) => (
                             <div
