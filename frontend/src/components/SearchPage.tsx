@@ -24,7 +24,7 @@ interface Owner {
     id: string
     name: string
   }
-  
+
 const trademarks: Trademark[] = Array(10)
 .fill(null)
 .map((_, index) => ({
@@ -54,6 +54,7 @@ const SearchPage:React.FC = () => {
     const [error, setError] = useState("");
     const [filters, setFilters] = useState<FilterOptions>({});
     const [results, setResults] = useState<Trademark[]>([]);
+    const [selectedStatus, setSelectedStatus] = useState('')
 
     useEffect(() => {
         setResults(trademarks)
@@ -183,6 +184,45 @@ const SearchPage:React.FC = () => {
               </div>
             ))}
           </div>
+        </div>
+
+            {/* Filter area */}
+        <div>
+            {/* Status filter */}
+            <div className='flex flex-col max-w-[296px] h-[160px] bg-white rounded-lg shadow-md shadow-neutral-200 p-5'>
+                <h3 className='font-bold mb-2'>Status</h3>
+                <div className='flex flex-wrap h-[37px] gap-1.5'>
+                    <button className={ `px-3 py-1.5 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${selectedStatus == 'all' ? "bg-[#EEF4FF] text-[#4380EC] border-[#4380EC]" : "border-[#C8C8C8] hover:bg-gray-50 "}`} 
+                    onClick={() => setSelectedStatus('all')
+                    }>
+                        All
+                    </button>
+                    <button className={ ` flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl border  text-sm font-medium transition-colors cursor-pointer ${selectedStatus == 'registered' ? "bg-[#EEF4FF] text-[#4380EC] border-[#4380EC]" : "border-[#C8C8C8] hover:bg-gray-50"}`} 
+                    onClick={() => setSelectedStatus('registered')
+                    }>
+                        <div className='w-[10px] h-[10px] bg-green-600 rounded-full'></div>
+                        Registered
+                    </button>
+                    <button className={ `flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl border  text-sm font-medium transition-colors cursor-pointer ${selectedStatus == 'pending' ? "bg-[#EEF4FF] text-[#4380EC] border-[#4380EC]" : "border-[#C8C8C8] hover:bg-gray-50"}`} 
+                    onClick={() => setSelectedStatus('pending')
+                    }>
+                        <div className='w-[10px] h-[10px] bg-[#ECC53C] rounded-full'></div>
+                        Pending
+                    </button>
+                    <button className={ `flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl border  text-sm font-medium transition-colors cursor-pointer ${selectedStatus == 'abandoned' ? "bg-[#EEF4FF] text-[#4380EC] border-[#4380EC]" : "border-[#C8C8C8] hover:bg-gray-50"}`} 
+                    onClick={() => setSelectedStatus('abandoned')
+                    }>
+                        <div className='w-[10px] h-[10px] bg-[#EC3C3C] rounded-full'></div>
+                        Abandoned
+                    </button>
+                    <button className={ `flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl border text-sm font-medium transition-colors cursor-pointer ${selectedStatus == 'others' ? "bg-[#EEF4FF] text-[#4380EC] border-[#4380EC]" : "border-[#C8C8C8] hover:bg-gray-50"}`} 
+                    onClick={() => setSelectedStatus('others')
+                    }>
+                        <div className='w-[10px] h-[10px] bg-[#4380EC] rounded-full'></div>
+                        Others
+                    </button>
+                </div>
+            </div>
         </div>
         </div>
 
