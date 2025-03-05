@@ -1,0 +1,16 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'gilroy-regular';
+  src: url('/fonts/Gilroy-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'gilroy-medium';
+  src: url("/fonts/Gilroy-Medium.ttf") format('truetype');
+}
+
+@theme{
+  --font-gilroy-regular: 'gilroy-regular';
+  --font-gilroy-medium: 'gilroy-medium';
+}
