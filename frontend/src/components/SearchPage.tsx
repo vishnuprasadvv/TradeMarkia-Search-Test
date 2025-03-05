@@ -27,7 +27,6 @@ interface Trademark {
 }
 
 const SearchPage: React.FC = () => {
-  // const [filters, setFilters] = useState<FilterOptions>({});
   const [results, setResults] = useState<Trademark[]>([]);
   const [selectedStatus, setSelectedStatus] = useState("");
   const [searchValue, setSearchValue] = useState("");
@@ -43,7 +42,7 @@ const SearchPage: React.FC = () => {
   const [selectedLawFirms, setSelectedLawFirms] = useState<string[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>("owners");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
+  const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -208,8 +207,6 @@ const SearchPage: React.FC = () => {
             })
           );
 
-        console.log(response.body);
-        console.log(resultData);
         setResults(resultData);
         setOwners(ownersData);
         setAttorneys(attorneysData);
@@ -234,17 +231,17 @@ const SearchPage: React.FC = () => {
   return (
     <div className="font-gilroy-medium bg-[#FEFEFE] ">
       <header className="h-auto bg-[#EAF1FF]">
-  <div className="bg-[#F8FAFE] flex flex-wrap items-center px-4 py-3 sm:py-4 md:px-6 lg:px-10 h-auto">
-    {/* Logo Container */}
-    <div className="flex-shrink-0 max-w-[170px] sm:max-w-[150px] md:max-w-[160px] lg:max-w-[170px]">
-      <img src={logo} alt="Logo" className="w-full h-auto" />
-    </div>
+        <div className="bg-[#F8FAFE] flex flex-wrap items-center px-4 py-3 sm:py-4 md:px-6 lg:px-10 h-auto">
+          {/* Logo Container */}
+          <div className="flex-shrink-0 max-w-[170px] sm:max-w-[150px] md:max-w-[160px] lg:max-w-[170px]">
+            <img src={logo} alt="Logo" className="w-full h-auto" />
+          </div>
 
-    <div className="flex-1 flex justify-center sm:ml-6 mt-3 md:mt-0">
-      <SearchBar onSearch={handleSearch} />
-    </div>
-  </div>
-</header>
+          <div className="flex-1 flex justify-center sm:ml-6 mt-3 md:mt-0">
+            <SearchBar onSearch={handleSearch} />
+          </div>
+        </div>
+      </header>
 
       <div className="xl:mx-[45px] mx-4">
         {searchValue.length > 0 && (
@@ -375,16 +372,23 @@ const SearchPage: React.FC = () => {
                         {trademark.description}
                       </div>
                       <div className="mt-2 overflow-x-auto">
-                    <div className="flex items-center font-bold overflow-x-hidden whitespace-nowrap">
-                      {trademark.classes.map((cls) => (
-                        <div key={cls} className="flex items-center text-xs mr-4 flex-shrink-0 line-clamp-1">
-                          <img src={bottleicon || ""} alt="icon" className="w-4 h-4 mr-1" />
-                          <span className="mr-1">Class</span>
-                          <span>{cls}</span>
+                        <div className="flex items-center font-bold overflow-x-hidden whitespace-nowrap">
+                          {trademark.classes.map((cls, index) => (
+                            <div
+                              key={`${cls}-${index}`}
+                              className="flex items-center text-xs mr-4 flex-shrink-0 line-clamp-1"
+                            >
+                              <img
+                                src={bottleicon || ""}
+                                alt="icon"
+                                className="w-4 h-4 mr-1"
+                              />
+                              <span className="mr-1">Class</span>
+                              <span>{cls}</span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -531,35 +535,35 @@ const SearchPage: React.FC = () => {
                       </div>
                     ))}
                 </div>
-
-                
-
               </div>
-        
 
-             {/* Display options */}
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h3 className="font-bold mb-3">Display</h3>
-            <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-md">
-              <button
-                className={`py-2 text-sm font-bold rounded ${
-                  viewMode === "grid" ? "bg-white shadow-sm" : "text-gray-600 hover:bg-gray-200"
-                }`}
-                onClick={() => setViewMode("grid")}
-              >
-                Grid View
-              </button>
-              <button
-                className={`py-2 text-sm font-bold rounded ${
-                  viewMode === "list" ? "bg-white shadow-sm" : "text-gray-600 hover:bg-gray-200"
-                }`}
-                onClick={() => setViewMode("list")}
-              >
-                List View
-              </button>
+              {/* Display options */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="font-bold mb-3">Display</h3>
+                <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-md">
+                  <button
+                    className={`py-2 text-sm font-bold rounded ${
+                      viewMode === "grid"
+                        ? "bg-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-200"
+                    }`}
+                    onClick={() => setViewMode("grid")}
+                  >
+                    Grid View
+                  </button>
+                  <button
+                    className={`py-2 text-sm font-bold rounded ${
+                      viewMode === "list"
+                        ? "bg-white shadow-sm"
+                        : "text-gray-600 hover:bg-gray-200"
+                    }`}
+                    onClick={() => setViewMode("list")}
+                  >
+                    List View
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-          </div>
           </div>
         </div>
       </div>
