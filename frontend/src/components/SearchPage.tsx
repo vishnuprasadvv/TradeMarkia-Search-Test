@@ -548,7 +548,7 @@ const SearchPage: React.FC = () => {
               </div>
 
               {/* Display options */}
-              <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="bg-white p-4 rounded-lg shadow-md">
                 <h3 className="font-bold mb-3">Display</h3>
                 <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-md">
                   <button
