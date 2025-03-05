@@ -215,6 +215,7 @@ const SearchPage: React.FC = () => {
         if (resultData.length === 0) toast.error("No results found!");
       } catch (error) {
         console.error("Failed to fetch results. Please try again.");
+        setResults([])
       } finally {
       }
     },
@@ -244,7 +245,7 @@ const SearchPage: React.FC = () => {
       </header>
 
       <div className="xl:mx-[45px] mx-4">
-        {searchValue.length > 0 && (
+        {searchValue.length > 0 && results.length > 0 && (
           <div className="border-b border-b-[#E7E6E6] text-[#4B5563] py-4 font-bold">
             <h4>
               About {results.length} Trademarks found for "{searchValue}"
@@ -286,10 +287,14 @@ const SearchPage: React.FC = () => {
           </div>
         </div>
 
-        <div>
+
+<div>
           {/* Main content */}
-          <div className="flex  gap-15">
+          <div className="flex  gap-15 w-full">
             {/* Trademark list */}
+            {
+    results.length > 0 ? (
+
             <div className="flex-1">
               {/* Table header */}
               <div className="grid grid-cols-4 gap-4 border-b border-b-[#E7E6E6] pb-2 mb-4 text-[#313131] font-bold">
@@ -394,6 +399,11 @@ const SearchPage: React.FC = () => {
                 ))}
               </div>
             </div>
+    ): (
+        <div className="text-center w-full">
+            <h1 className="text-2xl text-gray-500 uppercase font-bold">No Results Found</h1>
+        </div>
+    )}
 
             {/* Filter area */}
             <div className="space-y-2 flex flex-col w-[200px] md:w-[300px]">
@@ -566,6 +576,8 @@ const SearchPage: React.FC = () => {
             </div>
           </div>
         </div>
+
+        
       </div>
     </div>
   );
