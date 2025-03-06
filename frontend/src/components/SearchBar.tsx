@@ -30,7 +30,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
 
       <button
         type="submit"
-        className="h-[50px] w-[124px] rounded-xl text-white  font-gilroy-regular font-bold bg-[#4380EC]"
+        className="h-[50px] w-[124px] rounded-xl text-white cursor-pointer font-gilroy-regular font-bold bg-[#4380EC] hover:bg-blue-800"
       >
         Search
       </button>

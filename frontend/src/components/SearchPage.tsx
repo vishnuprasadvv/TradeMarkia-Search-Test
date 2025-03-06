@@ -220,6 +220,7 @@ const SearchPage: React.FC = () => {
         setAttorneys(attorneysData);
         setLawFirms(lawfirmsData);
 
+
         if (resultData.length === 0) toast.error("No results found!");
       } catch (error) {
         console.error("Failed to fetch results. Please try again.");
@@ -580,7 +581,7 @@ const SearchPage: React.FC = () => {
               <div className="flex flex-col max-w-[296px] h-[265px] bg-white rounded-lg shadow-md shadow-neutral-200 p-5">
                 <div className="flex gap-4 mb-2 text-sm md:text-[16px] items-start">
                   <button
-                    className={`font-bold border-b-3 pb-2 ${
+                    className={`font-bold border-b-3 pb-2 cursor-pointer ${
                       selectedFilter === "owners"
                         ? "border-black"
                         : "border-transparent"
@@ -590,7 +591,7 @@ const SearchPage: React.FC = () => {
                     Owners
                   </button>
                   <button
-                    className={`font-bold border-b-3 pb-2 ${
+                    className={`font-bold border-b-3 pb-2 cursor-pointer ${
                       selectedFilter === "lawFirms"
                         ? "border-black"
                         : "border-transparent"
@@ -600,7 +601,7 @@ const SearchPage: React.FC = () => {
                     Law Firms
                   </button>
                   <button
-                    className={`font-bold border-b-3 pb-2 ${
+                    className={`font-bold border-b-3 pb-2 cursor-pointer ${
                       selectedFilter === "attorneys"
                         ? "border-black"
                         : "border-transparent"
@@ -660,7 +661,7 @@ const SearchPage: React.FC = () => {
                 <h3 className="font-bold mb-3">Display</h3>
                 <div className="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-md">
                   <button
-                    className={`py-2 text-sm font-bold rounded ${
+                    className={`py-2 text-sm font-bold rounded cursor-pointer ${
                       viewMode === "grid"
                         ? "bg-white shadow-sm"
                         : "text-gray-600 hover:bg-gray-200"
@@ -670,7 +671,7 @@ const SearchPage: React.FC = () => {
                     Grid View
                   </button>
                   <button
-                    className={`py-2 text-sm font-bold rounded ${
+                    className={`py-2 text-sm font-bold rounded cursor-pointer ${
                       viewMode === "list"
                         ? "bg-white shadow-sm"
                         : "text-gray-600 hover:bg-gray-200"
